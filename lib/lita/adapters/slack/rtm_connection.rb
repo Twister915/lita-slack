@@ -32,26 +32,28 @@ module Lita
 
         def run(queue = nil, options = {})
           EventLoop.run do
-            log.debug("Connecting to the Slack Real Time Messaging API.")
+            log.debug("[slack rtm run] doing rtm_start...")
             team_data = API.new(config).rtm_start
 
+            log.debug("[slack rtm run] creating IMMapping...")
             @im_mapping = IMMapping.new(API.new(config), team_data.ims)
             @websocket_url = team_data.websocket_url
             @robot_id = team_data.self.id
 
+            log.debug("[slack rtm run] opening websocket...")
             @websocket = Faye::WebSocket::Client.new(
               websocket_url,
               nil,
               websocket_options.merge(options)
             )
 
-            websocket.on(:open) { log.debug("Connected to the Slack Real Time Messaging API.") }
+            websocket.on(:open) { log.debug("[slack rtm run] websocket connection opened!") }
             websocket.on(:message) { |event| receive_message(event) }
             websocket.on(:close) do
-              log.info("Disconnected from Slack.")
+              log.info("[slack rtm run] websocket connection closed!")
               EventLoop.safe_stop
             end
-            websocket.on(:error) { |event| log.debug("WebSocket error: #{event.message}") }
+            websocket.on(:error) { |event| log.debug("[slack rtm run] websocket error: #{event.message}") }
 
             queue << websocket if queue
           end
