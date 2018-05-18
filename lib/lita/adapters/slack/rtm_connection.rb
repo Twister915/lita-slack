@@ -33,7 +33,7 @@ module Lita
         def run(queue = nil, options = {})
           EventLoop.run do
             log.debug("Connecting to the Slack Real Time Messaging API.")
-            @team_data = API.new(config).rtm_start
+            team_data = API.new(config).rtm_start
 
             @im_mapping = IMMapping.new(API.new(config), team_data.ims)
             @websocket_url = team_data.websocket_url
